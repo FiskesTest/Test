@@ -1,0 +1,28 @@
+name: PR Review Reminder
+
+on:
+  schedule:
+    # Runs every 2 hours, all day, every day.
+    # Change to "0 8-20/2 * * 1-5" if you only want it during
+    # working hours (8am-8pm) on weekdays.
+    - cron: "0 */2 * * *"
+  workflow_dispatch: {} # lets you trigger it manually from the Actions tab to test
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run PR reminder
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node notifications/reminder.js
