@@ -29,7 +29,7 @@ const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 // Must match the cron schedule in .github/workflows/pr-reminder.yml.
 // Used to detect whether a PR has just crossed one of the reminder
 // thresholds below since it was created.
-const RUN_INTERVAL_MINUTES = 30;
+const RUN_INTERVAL_MINUTES = 15;
 
 // Reminder fires once at each of these marks (hours since PR creation).
 // Not repeating — just these two checkpoints.
@@ -82,7 +82,7 @@ async function sendDiscordMessage(content) {
   const res = await fetch(WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content, flags: 4 }), // flags: 4 = "Suppress embeds" (no link preview)
+    body: JSON.stringify({ content }),
   });
   if (!res.ok) {
     throw new Error(`Discord webhook error ${res.status}: ${await res.text()}`);
@@ -128,7 +128,7 @@ async function main() {
     const message =
       `⏰ **Review reminder** — PR still waiting on review (${crossedThreshold}h+):\n` +
       `**${pr.title}** (#${pr.number}) by ${pr.user.login}\n` +
-      `${pr.html_url}\n` +
+      `<${pr.html_url}>\n` +
       `Pending: ${mentions}`;
 
     await sendDiscordMessage(message);

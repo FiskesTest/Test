@@ -40,7 +40,7 @@ async function sendDiscordMessage(content) {
   const res = await fetch(DISCORD_WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content, flags: 4 }),
+    body: JSON.stringify({ content }),
   });
   if (!res.ok) {
     throw new Error(`Discord webhook error ${res.status}: ${await res.text()}`);
@@ -58,7 +58,7 @@ async function main() {
   const message =
     `🆕 **New PR opened** by ${pr.user.login}\n` +
     `**${pr.title}** (#${pr.number})\n` +
-    `${pr.html_url}\n` +
+    `<${pr.html_url}>\n` +
     `Review requested: ${mentions}`;
 
   await sendDiscordMessage(message);
