@@ -40,7 +40,7 @@ async function sendDiscordMessage(content) {
   const res = await fetch(DISCORD_WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, flags: 4 }),
   });
   if (!res.ok) {
     throw new Error(`Discord webhook error ${res.status}: ${await res.text()}`);
