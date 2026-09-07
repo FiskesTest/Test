@@ -26,6 +26,15 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const REPO = process.env.GITHUB_REPOSITORY; // "owner/repo"
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
+// Must match the cron schedule in .github/workflows/pr-reminder.yml.
+// Used to detect whether a PR has just crossed one of the reminder
+// thresholds below since it was created.
+const RUN_INTERVAL_MINUTES = 30;
+
+// Reminder fires once at each of these marks (hours since PR creation).
+// Not repeating — just these two checkpoints.
+const REMINDER_THRESHOLDS_HOURS = [2, 24];
+
 if (!GITHUB_TOKEN || !REPO || !WEBHOOK_URL) {
   console.error(
     "Missing required env vars. Need GITHUB_TOKEN, GITHUB_REPOSITORY, DISCORD_WEBHOOK_URL."
@@ -88,9 +97,24 @@ async function main() {
     return;
   }
 
+  const now = new Date();
+
   for (const pr of prs) {
     // Skip draft PRs — they're not ready for review yet.
     if (pr.draft) continue;
+
+    const createdAt = new Date(pr.created_at);
+    const elapsedHours = (now - createdAt) / 3600000;
+    const previousElapsedHours = elapsedHours - RUN_INTERVAL_MINUTES / 60;
+
+    // Find a threshold (2h, 24h, ...) that we've just crossed since the
+    // last run — i.e. previousElapsedHours was below it and elapsedHours
+    // is now at or above it. Each threshold only ever fires once per PR.
+    const crossedThreshold = REMINDER_THRESHOLDS_HOURS.find(
+      (threshold) => previousElapsedHours < threshold && elapsedHours >= threshold
+    );
+
+    if (!crossedThreshold) continue;
 
     const { users } = await getRequestedReviewers(pr.number);
 
@@ -102,13 +126,13 @@ async function main() {
     const mentions = users.map((u) => discordMention(u.login)).join(" ");
 
     const message =
-      `**Review reminder** — PR still waiting on review:\n` +
+      `⏰ **Review reminder** — PR still waiting on review (${crossedThreshold}h+):\n` +
       `**${pr.title}** (#${pr.number}) by ${pr.user.login}\n` +
       `${pr.html_url}\n` +
       `Pending: ${mentions}`;
 
     await sendDiscordMessage(message);
-    console.log(`Sent reminder for PR #${pr.number} to: ${users.map((u) => u.login).join(", ")}`);
+    console.log(`Sent ${crossedThreshold}h reminder for PR #${pr.number} to: ${users.map((u) => u.login).join(", ")}`);
   }
 }
 
