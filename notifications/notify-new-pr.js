@@ -56,7 +56,7 @@ async function main() {
       : "@everyone";
 
   const message =
-    `🆕 **New PR opened** by ${pr.user.login}\n` +
+    `**New PR opened** by ${pr.user.login}\n` +
     `**${pr.title}** (#${pr.number})\n` +
     `<${pr.html_url}>\n` +
     `Review requested: ${mentions}`;

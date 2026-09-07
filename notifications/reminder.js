@@ -126,7 +126,7 @@ async function main() {
     const mentions = users.map((u) => discordMention(u.login)).join(" ");
 
     const message =
-      `⏰ **Review reminder** — PR still waiting on review (${crossedThreshold}h+):\n` +
+      `**Review reminder** — PR still waiting on review (${crossedThreshold}h+):\n` +
       `**${pr.title}** (#${pr.number}) by ${pr.user.login}\n` +
       `<${pr.html_url}>\n` +
       `Pending: ${mentions}`;
