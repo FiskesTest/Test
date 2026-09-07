@@ -2,10 +2,16 @@ name: PR Review Reminder
 
 on:
   schedule:
-    # Runs every 2 hours, all day, every day.
-    # Change to "0 8-20/2 * * 1-5" if you only want it during
-    # working hours (8am-8pm) on weekdays.
-    - cron: "0 */2 * * *"
+    # Runs every 3 minutes. This is NOT how often people get pinged —
+    # it's just how often we check "has any open PR just crossed the 2h or
+    # 24h mark since it was created?" The script (reminder.js) does that
+    # math and only sends a message at those two specific checkpoints per
+    # PR, timed from its own creation time, not from a fixed clock.
+    #
+    # If you change this interval, also update RUN_INTERVAL_MINUTES at the
+    # top of notifications/reminder.js to match, or the boundary-detection
+    # math will drift.
+    - cron: "*/30 * * * *"
   workflow_dispatch: {} # lets you trigger it manually from the Actions tab to test
 
 jobs:
